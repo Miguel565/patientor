@@ -3,7 +3,7 @@ import { Patient, PatientFormValues } from "../types";
 
 import { apiBaseUrl } from "../constants";
 
-const getAll = async () => {
+const getAllPatients = async () => {
   const { data } = await axios.get<Patient[]>(
     `${apiBaseUrl}/patients`
   );
@@ -11,7 +11,12 @@ const getAll = async () => {
   return data;
 };
 
-const create = async (object: PatientFormValues) => {
+const getPatient = async (id: string) => {
+  const { data } = await axios.get<Patient>(`${apiBaseUrl}/patients/${id}`);
+  return data;
+}; 
+
+const createPatient = async (object: PatientFormValues) => {
   const { data } = await axios.post<Patient>(
     `${apiBaseUrl}/patients`,
     object
@@ -21,6 +26,8 @@ const create = async (object: PatientFormValues) => {
 };
 
 export default {
-  getAll, create
+  getAllPatients, 
+  createPatient,
+  getPatient
 };
 
