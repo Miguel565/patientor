@@ -7,6 +7,28 @@ import { Patient, Gender, Entry } from '../../types';
 
 import patientService from '../../services/patients';
 
+import HospitalEntry from './HospitalEntry';
+import OccupationalEntry from './OccupationalEntry';
+import HealthCheckEntry from './HealthCheckEntry';
+import HealthRatingBar from '../HealthRatingBar';
+
+const EntryDetails: React.FC<{ entry: Entry }> = ({ entry }) => {
+    switch (entry.type) {
+        case "Hospital":
+            return <HospitalEntry />;
+        case "OccupationalHealthcare":
+            return <OccupationalEntry />;
+        case "HealthCheck":
+            return <HealthCheckEntry />;
+        default:
+            return assertNever(entry);
+    }
+}
+
+const assertNever = (value: never): never => {
+    throw new Error(`Unhandled discriminated component member: ${JSON.stringify(value)}`);
+}
+
 const DetailPatient = () => {
     const [patient, setPatient] = useState<Patient>();
     const { id } = useParams();
@@ -48,15 +70,26 @@ const DetailPatient = () => {
                         Occupation: {patient?.occupation}
                     </Typography>
                     <Typography variant='h5'>Entries</Typography>
-                    <Typography>
+                    <Typography borderRadius={2} borderColor={'black'}>
                         {patient?.entries.map((entry: Entry) => (
-                            <><p>{entry.date} {entry.description}</p>
-                            <br/>
-                            <ul>
-                                <li key={entry.id}>
-                                    {entry.diagnosisCode}
-                                </li>
-                            </ul></>
+                            <>
+                                <Typography>
+                                    {entry.date} <EntryDetails entry={entry} />
+                                </Typography>
+                                <Typography>
+                                    {entry.description}
+                                </Typography>
+                                <span>
+                                    {entry.type === 'HealthCheck'
+                                        ? <HealthRatingBar rating={entry.healthCheckRating.valueOf()} showText={false} />
+                                        : null
+                                    }
+                                </span>
+                                <br />
+                                <Typography>
+                                    Diagnose by {entry.specialist}
+                                </Typography>
+                            </>
                         ))}
                     </Typography>
                 </CardContent>
