@@ -9,7 +9,7 @@ export interface BaseEntry {
   date: string;
   description: string;
   specialist: string;
-  diagnosisCode?: Array<Diagnosis['code']>;
+  diagnosisCodes?: Array<Diagnosis['code']>;
 }
 
 
@@ -61,3 +61,7 @@ export interface Patient {
 }
 
 export type PatientFormValues = Omit<Patient, "id" | "entries">;
+
+type UnionOmit<T, K extends string | number | symbol> = T extends unknown ? Omit<T, K> : never;
+
+export type EntryFormValues = UnionOmit<Entry, "id">;
