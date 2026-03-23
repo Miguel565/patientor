@@ -1,9 +1,24 @@
 import WorkIcon from '@mui/icons-material/Work';
+import { Icon } from '@mui/material';
 
-const OccupationalEntry = () => {
+import type { OccupationalHealthcareEntry } from '../../types';
+
+interface Prop {
+    entry: OccupationalHealthcareEntry;
+}
+
+const OccupationalEntry = ({ entry }: Prop) => {
     return (
         <div>
-            <WorkIcon />
+            <p>
+                {entry.date} <Icon component={WorkIcon} />
+            </p>
+            <p>
+                {entry.description}
+            </p>
+            <p>
+                Diagnose by: {entry.specialist}
+            </p>
         </div>
     );
 };

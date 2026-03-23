@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Box, Table, Button, TableHead, Typography, TableCell, TableRow, TableBody } from '@mui/material';
+import { useState, useEffect } from "react";
+import { Box, Table, Button, TableHead, Typography, TableContainer, TableCell, TableRow, TableBody } from '@mui/material';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
@@ -9,16 +9,25 @@ import AddPatientModal from "../AddPatientModal";
 import HealthRatingBar from "../HealthRatingBar";
 
 import patientService from "../../services/patients";
+import Notify from "../Notify";
+import { apiBaseUrl } from "../../constants";
 
-interface Props {
-  patients : Patient[]
-  setPatients: React.Dispatch<React.SetStateAction<Patient[]>>
-}
-
-const PatientListPage = ({ patients, setPatients } : Props ) => {
+const PatientListPage = () => {
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [error, setError] = useState<string>();
+
+  const [patients, setPatients] = useState<Patient[]>([]);
+
+  useEffect(() => {
+    void axios.get<void>(`${apiBaseUrl}/ping`);
+
+    const fetchPatientList = async () => {
+      const AllPatients = await patientService.getAllPatients();
+      setPatients(AllPatients);
+    };
+    void fetchPatientList();
+  }, []);
 
   const openModal = (): void => setModalOpen(true);
 
@@ -49,36 +58,39 @@ const PatientListPage = ({ patients, setPatients } : Props ) => {
   };
 
   return (
-    <div className="App">
+    <div>
       <Box>
-        <Typography align="center" variant="h6">
+        <Typography align="center" variant="h5">
           Patient list
         </Typography>
       </Box>
-      <Table style={{ marginBottom: "1em" }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Gender</TableCell>
-            <TableCell>Occupation</TableCell>
-            <TableCell>Health Rating</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {Object.values(patients).map((patient: Patient) => (
-            <TableRow key={patient.id}>
-              <TableCell>
-                <Link to={`/patients/${patient.id}`}>{patient.name}</Link>
-              </TableCell>
-              <TableCell>{patient.gender}</TableCell>
-              <TableCell>{patient.occupation}</TableCell>
-              <TableCell>
-                <HealthRatingBar showText={false} rating={1} />
-              </TableCell>
+      <Notify setMessage={setError} message={error} />
+      <TableContainer>
+        <Table style={{ marginBottom: "1em" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Gender</TableCell>
+              <TableCell>Occupation</TableCell>
+              <TableCell>Health Rating</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {Object.values(patients).map(patient => 
+              <TableRow key={patient.id} >
+                <TableCell>
+                  <Link to={`/patients/${patient.id}`}>{patient.name}</Link>
+                </TableCell>
+                <TableCell>{patient.gender}</TableCell>
+                <TableCell>{patient.occupation}</TableCell>
+                <TableCell>
+                  <HealthRatingBar showText={false} rating={1} />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
       <AddPatientModal
         modalOpen={modalOpen}
         onSubmit={submitNewPatient}
