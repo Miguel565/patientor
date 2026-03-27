@@ -24,7 +24,12 @@ const PatientListPage = () => {
 
     const fetchPatientList = async () => {
       const AllPatients = await patientService.getAllPatients();
-      setPatients(AllPatients);
+      console.log('Data: ', AllPatients);
+      setPatients(
+        Array.isArray(AllPatients) 
+        ? AllPatients 
+        : []
+      );
     };
     void fetchPatientList();
   }, []);
@@ -36,10 +41,12 @@ const PatientListPage = () => {
     setError(undefined);
   };
 
+  console.log('PatientList: ', patients);
+
   const submitNewPatient = async (values: PatientFormValues) => {
     try {
       const patient = await patientService.createPatient(values);
-      setPatients(patients.concat(patient));
+      setPatients(prev => prev.concat(patient));
       setModalOpen(false);
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
@@ -58,13 +65,13 @@ const PatientListPage = () => {
   };
 
   return (
-    <div>
+    <>
       <Box>
         <Typography align="center" variant="h5">
           Patient list
         </Typography>
       </Box>
-      <Notify setMessage={setError} message={error} />
+      {error && <Notify setMessage={setError} message={error} />}
       <TableContainer>
         <Table style={{ marginBottom: "1em" }}>
           <TableHead>
@@ -76,7 +83,7 @@ const PatientListPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Object.values(patients).map(patient => 
+            {patients.map((patient: Patient) =>
               <TableRow key={patient.id} >
                 <TableCell>
                   <Link to={`/patients/${patient.id}`}>{patient.name}</Link>
@@ -100,7 +107,7 @@ const PatientListPage = () => {
       <Button variant="contained" onClick={() => openModal()}>
         Add New Patient
       </Button>
-    </div>
+    </>
   );
 };
 

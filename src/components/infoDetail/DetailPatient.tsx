@@ -4,13 +4,13 @@ import { Card, CardContent, Typography, Divider } from '@mui/material';
 import { Female, Male, Transgender } from '@mui/icons-material';
 import EntryDetails from "./EntryDetail";
 
-import { Patient, Gender, Entry, EntryFormValues } from '../../types';
+import { Patient, Gender, Entry } from '../../types';
 
 import patientService from '../../services/patients';
 
 import Togglable from '../AddEntryTogglable/index';
 import EntryForm from '../AddEntryForm/index';
-import Notify from '../Notify';
+import Notify from '../Notify/index';
 
 const DetailPatient = () => {
     const [patient, setPatient] = useState<Patient>();
@@ -32,16 +32,6 @@ const DetailPatient = () => {
 
         fetchPatientById();
     }, []);
-
-    const submitNewEntry = async (values: EntryFormValues) => {
-        try {
-            if (!id) return;
-            const entry = await patientService.createEntry(id, values);
-            setEntries(entries.concat(entry));
-        } catch (e: unknown) {
-            setMessage(`${e}`);
-        }
-    };
 
     const handleGender = () => {
         switch (patient?.gender) {
@@ -71,12 +61,12 @@ const DetailPatient = () => {
                     <Divider />
                     <Notify message={message} setMessage={setMessage} />
                     <Togglable buttonLabel='ADD NEW ENTRY' ref={patientRef}>
-                        <EntryForm onSubmit={submitNewEntry} />
+                        <EntryForm entries={entries} setEntries={setEntries} setMessage={setMessage} />
                     </Togglable>
                     <Typography variant='h5'>Entries</Typography>
                     <Typography borderRadius={2} borderColor={'black'}>
                         <ul>
-                            {patient?.entries?.map((entry: Entry) => (
+                            {entries?.map((entry: Entry) => (
                                 <>
                                     <li key={entry.id} >
                                         <EntryDetails entry={entry} />

@@ -1,90 +1,79 @@
-import React, { useState } from 'react';
-import { TextField, Typography, Button } from '@mui/material';
+import { useState } from 'react';
+import { Typography, RadioGroup, Radio, FormControlLabel } from '@mui/material';
 
-import { Diagnosis, EntryFormValues } from '../../types';
+import { EntryFormValues, Entry } from '../../types';
+import { useParams } from 'react-router-dom';
+
+import patientService from '../../services/patients';
+
+import HealthCheckForm from './HealthCheckForm';
+import OccupationForm from './OccupationalHealth';
+import HospitalForm from './HospitalForm';
+
+enum entryType {
+    Hospital = 'Hospital',
+    Occupational = 'OccupationalHealtcare',
+    HealthCheck = 'HealthCheck'
+}
 
 interface Props {
-    onSubmit: (values: EntryFormValues) => void;
-};
+    entries: Entry[];
+    setEntries: (value: Entry[]) => void;
+    setMessage: (value: string) => void;
+}
 
-const EntryForm = ({ onSubmit }: Props) => {
-    const [description, setDescription] = useState('');
-    const [date, setDate] = useState('');
-    const [specialist, setSpecialist] = useState('');
-    const [healthCheckRating, setHealthCheckRating] = useState('');
-    const [diagnosisCodes, setDiagnosisCodes] = useState<Diagnosis['code'][]>([]);
+const EntryForm = ({ entries, setEntries, setMessage }: Props) => {
 
-    const addEntry = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        onSubmit({
-            description,
-            date,
-            type: "HealthCheck",
-            specialist,
-            diagnosisCodes,
-            healthCheckRating: Number(healthCheckRating)
-        });
+    const { id } = useParams();
+
+    const [type, setType] = useState<string>('Hospital');
+
+    const submitNewEntry = async (values: EntryFormValues) => {
+        try {
+            if (!id) return;
+            const entry = await patientService.createEntry(id, values);
+            setEntries(entries.concat(entry));
+        } catch (e: unknown) {
+            setMessage(`${e}`);
+        }
+    };
+
+    const handleEntryType = () => {
+        switch (type) {
+            case entryType.HealthCheck:
+                return <HealthCheckForm onSubmit={submitNewEntry} />;
+            case entryType.Occupational:
+                return <OccupationForm onSubmit={submitNewEntry} />;
+            case entryType.Hospital:
+                return <HospitalForm onSubmit={submitNewEntry} />;
+        }
     };
 
     return (
         <div>
             <Typography variant='h3'>
-                New Etries!
+                New Entry!
             </Typography>
-            <form onSubmit={addEntry} >
-                <div>
-                    <TextField
-                        required
-                        label='Description'
-                        name='Description'
-                        value={description}
-                        variant='filled'
-                        onChange={({ target }) => setDescription(target.value)}
-                    />
-                </div>
-                <div>
-                    <TextField
-                        required
-                        label='Date'
-                        name='date'
-                        value={date}
-                        variant='filled'
-                        onChange={({ target }) => setDate(target.value)}
-                    />
-                </div>
-                <div>
-                    <TextField
-                        required
-                        label='Specialist'
-                        value={specialist}
-                        variant='filled'
-                        onChange={({ target }) => setSpecialist(target.value)}
-                    />
-                </div>
-                <div>
-                    <TextField 
-                        required
-                        label='HealthCheck Rating'
-                        name='HealthCheckRating'
-                        value={healthCheckRating}
-                        variant='filled'
-                        onChange={({ target }) => setHealthCheckRating(target.value)}
-                    />
-                </div>
-                <div>
-                    <TextField 
-                        required
-                        label='Diagnosis codes (comma separated)'
-                        name='DiagnosisCodes'
-                        value={diagnosisCodes.join(',')}
-                        variant='filled'
-                        onChange={({ target }) => setDiagnosisCodes(target.value.split(',').map(code => code.trim()))}
-                    />
-                </div>
-                <div>
-                    <Button variant='contained' color='success'>ADD</Button>
-                </div>
-            </form>
+            <RadioGroup>
+                <FormControlLabel
+                    value={entryType.HealthCheck}
+                    label="HealthCheck"
+                    control={<Radio onClick={() => setType(entryType.HealthCheck.toString())} />}
+                />
+                <FormControlLabel 
+                    value={entryType.Occupational}
+                    label="Occupational Healthcare"
+                    control={<Radio onClick={() => setType(entryType.Occupational.toString())} />}
+                />
+                <FormControlLabel
+                    value={entryType.Hospital}
+                    label="Hospital"
+                    control={<Radio onClick={() => setType(entryType.Hospital.toString())} />}
+                />
+            </RadioGroup>
+            <div>
+                {type && handleEntryType()}
+            </div>
         </div>
     );
 }

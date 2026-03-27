@@ -14,12 +14,12 @@ const Notify = ({ message, setMessage }: Props) => {
     return (
         <Container>
             <Box sx={{
-                width: 600,
-                height: 100,
+                width: 400,
+                height: 80,
                 borderRadius: 2,
-                bgcolor: '#EB0000',
+                bgcolor: '#ee7272',
                 '&:hover': {
-                    bgcolor: '#B80606'
+                    bgcolor: '#9d1c1c'
                 }
             }} >
                 <Typography>
