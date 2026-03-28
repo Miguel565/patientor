@@ -60,7 +60,7 @@ const EntryForm = ({ entries, setEntries, setMessage }: Props) => {
                     label="HealthCheck"
                     control={<Radio onClick={() => setType(entryType.HealthCheck.toString())} />}
                 />
-                <FormControlLabel 
+                <FormControlLabel
                     value={entryType.Occupational}
                     label="Occupational Healthcare"
                     control={<Radio onClick={() => setType(entryType.Occupational.toString())} />}

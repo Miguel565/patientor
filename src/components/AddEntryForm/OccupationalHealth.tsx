@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
-import { InputLabel, Button, TextField } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import {
+    InputLabel,
+    Button,
+    TextField,
+    Typography,
+    FormControl,
+    MenuItem
+} from '@mui/material';
 import { EntryFormValues, Diagnosis } from '../../types';
+
+import diagnosis from '../../services/diagnosis';
 
 interface Props {
     onSubmit: (value: EntryFormValues) => void;
@@ -10,10 +20,31 @@ const OccupationForm = ({ onSubmit }: Props) => {
     const [description, setDescription] = useState<string>('');
     const [date, setDate] = useState<string>('');
     const [specialist, setSpecialist] = useState<string>('');
-    const [diagnosisCodes, setDiagnosisCodes] = useState<Array<Diagnosis['code']>>([]);
+    const [diagnosisCodes, setDiagnosisCodes] = useState<Array<Diagnosis>>([]);
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
     const [employerName, setEmployerName] = useState<string>('');
+    const [diagnosisCodeSelected, setDiagnosisCodeSelected] = useState<Array<Diagnosis['code']>>([]);
+
+    useEffect(() => {
+        const fetchDiagnosis = async () => {
+            const diagnos = await diagnosis.getAllDiagnosis();
+            setDiagnosisCodes(diagnos);
+        };
+
+        fetchDiagnosis();
+    }, []);
+
+    const handleDiagnosisSelected = (event: SelectChangeEvent<typeof diagnosisCodeSelected>) => {
+        const {
+            target: { value },
+        } = event;
+        setDiagnosisCodeSelected(
+            typeof value === "string"
+                ? value.split(",")
+                : value
+        );
+    };
 
     const addEntry = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -22,7 +53,7 @@ const OccupationForm = ({ onSubmit }: Props) => {
             date,
             type: "OccupationalHealthcare",
             specialist,
-            diagnosisCodes,
+            diagnosisCodes: diagnosisCodeSelected,
             employerName,
             sickLeave: {
                 startDate,
@@ -45,9 +76,10 @@ const OccupationForm = ({ onSubmit }: Props) => {
                     />
                 </div>
                 <div>
+                    <InputLabel>Date Entry</InputLabel>
                     <TextField
                         required
-                        label='Date'
+                        type='date'
                         name='date'
                         value={date}
                         variant='filled'
@@ -63,16 +95,22 @@ const OccupationForm = ({ onSubmit }: Props) => {
                         onChange={({ target }) => setSpecialist(target.value)}
                     />
                 </div>
-                <div>
-                    <TextField
+                <FormControl>
+                    <InputLabel>Diagnosis codes</InputLabel>
+                    <Select
                         required
-                        label='Diagnosis codes (comma separated)'
-                        name='DiagnosisCodes'
-                        value={diagnosisCodes.join(',')}
-                        variant='filled'
-                        onChange={({ target }) => setDiagnosisCodes(target.value.split(',').map(code => code.trim()))}
-                    />
-                </div>
+                        multiple
+                        renderValue={(selected) => selected.join(', ')}
+                        value={diagnosisCodeSelected}
+                        onChange={handleDiagnosisSelected}
+                    >
+                        {diagnosisCodes.map((option) => (
+                            <MenuItem key={option.code} value={option.code}>
+                                {option.code} - {option.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <div>
                     <TextField
                         required
@@ -82,18 +120,20 @@ const OccupationForm = ({ onSubmit }: Props) => {
                         onChange={({ target }) => setEmployerName(target.value)}
                     />
                 </div>
-                <InputLabel>Sick Leave</InputLabel>
+                <Typography variant='h3' >Sick Leave</Typography>
                 <div>
+                    <InputLabel>Start Date</InputLabel>
                     <TextField
-                        label='Start date'
+                        type='date'
                         value={startDate}
                         variant='filled'
                         onChange={({ target }) => setStartDate(target.value)}
                     />
                 </div>
                 <div>
-                    <TextField 
-                        label='End date'
+                    <InputLabel>End Date</InputLabel>
+                    <TextField
+                        type='date'
                         value={endDate}
                         variant='filled'
                         onChange={({ target }) => setEndDate(target.value)}

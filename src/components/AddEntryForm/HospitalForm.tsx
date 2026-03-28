@@ -1,5 +1,14 @@
-import React, { useState } from 'react';
-import { InputLabel, TextField, FormControl, Button } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { 
+    InputLabel, 
+    TextField, 
+    FormControl, 
+    Button,
+    MenuItem 
+} from '@mui/material';
+
+import diagnosis from '../../services/diagnosis';
 
 import { EntryFormValues, Diagnosis } from '../../types';
 
@@ -13,7 +22,28 @@ const HospitalForm = ({ onSubmit }: Props) => {
     const [description, setDescription] = useState<string>('');
     const [dateEntry, setDateEntry] = useState<string>('');
     const [specialist, setSpecialist] = useState<string>('');
-    const [diagnosisCodes, setDiagnosisCodes] = useState<Array<Diagnosis['code']>>([]);
+    const [diagnosisCodes, setDiagnosisCodes] = useState<Array<Diagnosis>>([]);
+    const [diagnosisCodeSelected, setDiagnosisCodeSelected] = useState<Array<Diagnosis['code']>>([]);
+    
+        useEffect(() => {
+            const fetchDiagnosis = async () => {
+                const diagnos = await diagnosis.getAllDiagnosis();
+                setDiagnosisCodes(diagnos);
+            };
+    
+            fetchDiagnosis();
+        }, []);
+    
+        const handleDiagnosisSelected = (event: SelectChangeEvent<typeof diagnosisCodeSelected>) => {
+            const {
+                target: { value },
+            } = event;
+            setDiagnosisCodeSelected(
+                typeof value === "string"
+                    ? value.split(",")
+                    : value
+            );
+        };
 
     const addEntry = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -22,13 +52,13 @@ const HospitalForm = ({ onSubmit }: Props) => {
             date: dateEntry,
             type: "Hospital",
             specialist,
-            diagnosisCodes,
+            diagnosisCodes: diagnosisCodeSelected,
             discharge: {
-                date, 
+                date,
                 criteria
             }
         });
-        
+
     };
 
     return (
@@ -44,16 +74,17 @@ const HospitalForm = ({ onSubmit }: Props) => {
                         onChange={({ target }) => setDescription(target.value)}
                     />
                 </div>
-                <div>
+                <FormControl>
+                    <InputLabel>Date Entry</InputLabel>
                     <TextField
                         required
-                        label='Date'
+                        type='date'
                         name='date'
                         value={dateEntry}
                         variant='filled'
                         onChange={({ target }) => setDateEntry(target.value)}
                     />
-                </div>
+                </FormControl>
                 <div>
                     <TextField
                         required
@@ -63,21 +94,28 @@ const HospitalForm = ({ onSubmit }: Props) => {
                         onChange={({ target }) => setSpecialist(target.value)}
                     />
                 </div>
-                <div>
-                    <TextField
+                <FormControl>
+                    <InputLabel>Diagnosis codes</InputLabel>
+                    <Select
                         required
-                        label='Diagnosis codes (comma separated)'
-                        name='DiagnosisCodes'
-                        value={diagnosisCodes.join(',')}
-                        variant='filled'
-                        onChange={({ target }) => setDiagnosisCodes(target.value.split(',').map(code => code.trim()))}
-                    />
-                </div>
+                        multiple
+                        renderValue={(selected) => selected.join(', ')}
+                        value={diagnosisCodeSelected}
+                        onChange={handleDiagnosisSelected}
+                    >
+                        {diagnosisCodes.map((option) => (
+                            <MenuItem key={option.code} value={option.code}>
+                                {option.code} - {option.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <InputLabel>Discharge</InputLabel>
                 <FormControl>
+                    <InputLabel>Date Discharge</InputLabel>
                     <TextField
                         required
-                        label='date'
+                        type='date'
                         name='date'
                         variant='filled'
                         value={date}

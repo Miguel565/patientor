@@ -6,17 +6,16 @@ import { Patient, PatientFormValues, EntryFormValues, Entry } from "../types";
 const apiBaseUrl = '/api/patients/';
 
 const getAllPatients = async () => {
-  const response = await axios.get<Patient[]>(
+  const { data } = await axios.get<Patient[]>(
     `${apiBaseUrl}`
   );
-
-  return response.data;
+  return data;
 };
 
 const getPatient = async (id: string) => {
   const { data } = await axios.get<Patient>(`${apiBaseUrl}/${id}`);
   return data;
-}; 
+};
 
 const createPatient = async (object: PatientFormValues) => {
   const { data } = await axios.post<Patient>(
@@ -36,7 +35,7 @@ const createEntry = async (patientId: string, entry: EntryFormValues) => {
 };
 
 export default {
-  getAllPatients, 
+  getAllPatients,
   createPatient,
   getPatient,
   createEntry

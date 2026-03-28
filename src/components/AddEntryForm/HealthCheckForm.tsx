@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { TextField, InputLabel,FormControl, MenuItem } from '@mui/material';
+import { TextField, InputLabel, FormControl, MenuItem } from '@mui/material';
 import { HealthCheckRating } from '../../types';
 
 import { EntryFormValues, Diagnosis } from '../../types';
+
+import diagnosis from '../../services/diagnosis';
 
 interface Props {
     onSubmit: (value: EntryFormValues) => void;
@@ -15,7 +17,28 @@ const HealthCheckForm = ({ onSubmit }: Props) => {
     const [description, setDescription] = useState<string>('');
     const [date, setDate] = useState<string>('');
     const [specialist, setSpecialist] = useState<string>('');
-    const [diagnosisCodes, setDiagnosisCodes] = useState<Array<Diagnosis['code']>>([]);
+    const [diagnosisCodes, setDiagnosisCodes] = useState<Array<Diagnosis>>([]);
+    const [diagnosisCodeSelected, setDiagnosisCodeSelected] = useState<Array<Diagnosis['code']>>([]);
+
+    useEffect(() => {
+        const fetchDiagnosis = async () => {
+            const diagnos = await diagnosis.getAllDiagnosis();
+            setDiagnosisCodes(diagnos);
+        };
+
+        fetchDiagnosis();
+    }, []);
+
+    const handleDiagnosisSelected = (event: SelectChangeEvent<typeof diagnosisCodeSelected>) => {
+        const {
+            target: { value },
+        } = event;
+        setDiagnosisCodeSelected(
+            typeof value === "string"
+                ? value.split(",")
+                : value
+        );
+    };
 
     const handleSelect = (event: SelectChangeEvent) => {
         setRating(Number(event.target.value));
@@ -28,7 +51,7 @@ const HealthCheckForm = ({ onSubmit }: Props) => {
             date,
             type: "HealthCheck",
             specialist,
-            diagnosisCodes,
+            diagnosisCodes: diagnosisCodeSelected,
             healthCheckRating: rating
         });
     };
@@ -46,16 +69,17 @@ const HealthCheckForm = ({ onSubmit }: Props) => {
                         onChange={({ target }) => setDescription(target.value)}
                     />
                 </div>
-                <div>
+                <FormControl>
+                    <InputLabel>Date</InputLabel>
                     <TextField
                         required
-                        label='Date'
+                        type='date'
                         name='date'
                         value={date}
                         variant='filled'
                         onChange={({ target }) => setDate(target.value)}
                     />
-                </div>
+                </FormControl>
                 <div>
                     <TextField
                         required
@@ -65,16 +89,22 @@ const HealthCheckForm = ({ onSubmit }: Props) => {
                         onChange={({ target }) => setSpecialist(target.value)}
                     />
                 </div>
-                <div>
-                    <TextField
+                <FormControl>
+                    <InputLabel>Diagnosis codes</InputLabel>
+                    <Select
                         required
-                        label='Diagnosis codes (comma separated)'
-                        name='DiagnosisCodes'
-                        value={diagnosisCodes.join(',')}
-                        variant='filled'
-                        onChange={({ target }) => setDiagnosisCodes(target.value.split(',').map(code => code.trim()))}
-                    />
-                </div>
+                        multiple
+                        renderValue={(selected) => selected.join(', ')}
+                        value={diagnosisCodeSelected}
+                        onChange={handleDiagnosisSelected}
+                    >
+                        {diagnosisCodes.map((option) => (
+                            <MenuItem key={option.code} value={option.code}>
+                                {option.code} - {option.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <FormControl fullWidth>
                     <InputLabel id="select-label">Health Check Rating</InputLabel>
                     <Select
